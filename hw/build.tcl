@@ -24,7 +24,6 @@
 #    (Please see the '$orig_proj_dir' and '$origin_dir' variable setting below at the start of the script)
 #
 #    "/home/parthiv/Documents/fpga_sam/hw/hdl/sam_wrapper.v"
-#    "/home/parthiv/Documents/fpga_sam/hw/fpga_sam.srcs/sources_1/bd/fpga_sam/fpga_sam.bd"
 #
 # 3. The following remote source files that were added to the original project:-
 #
@@ -37,7 +36,6 @@ proc checkRequiredFiles { origin_dir} {
   set status true
   set files [list \
  "[file normalize "$origin_dir/hdl/sam_wrapper.v"]"\
- "[file normalize "$origin_dir/fpga_sam.srcs/sources_1/bd/fpga_sam/fpga_sam.bd"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
@@ -162,27 +160,15 @@ set obj [get_filesets sources_1]
 # Import local files from the original project
 set files [list \
  [file normalize "${origin_dir}/hdl/sam_wrapper.v" ]\
- [file normalize "${origin_dir}/fpga_sam.srcs/sources_1/bd/fpga_sam/fpga_sam.bd" ]\
 ]
 set imported_files [import_files -fileset sources_1 $files]
-
-#call make_wrapper to create wrapper files
-if { [get_property IS_LOCKED [ get_files -norecurse fpga_sam.bd] ] == 1  } {
-  import_files -fileset sources_1 [file normalize "${origin_dir}/fpga_sam.gen/sources_1/bd/fpga_sam/hdl/fpga_sam_wrapper.v" ]
-} else {
-  set wrapper_path [make_wrapper -fileset sources_1 -files [ get_files -norecurse fpga_sam.bd] -top]
-  add_files -norecurse -fileset sources_1 $wrapper_path
-}
 
 
 # Set 'sources_1' fileset file properties for remote files
 # None
 
 # Set 'sources_1' fileset file properties for local files
-set file "fpga_sam/fpga_sam.bd"
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "registered_with_manager" -value "1" -objects $file_obj
-
+# None
 
 # Set 'sources_1' fileset properties
 set obj [get_filesets sources_1]
