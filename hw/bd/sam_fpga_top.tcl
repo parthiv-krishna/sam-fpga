@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: fpga_sam
+# This is a generated script based on design: sam_fpga_top
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source fpga_sam_script.tcl
+# source sam_fpga_top.tcl
 
 
 # The design that will be created by this Tcl script contains the following 
@@ -57,7 +57,7 @@ if { $list_projs eq "" } {
 
 # CHANGE DESIGN NAME HERE
 variable design_name
-set design_name fpga_sam
+set design_name sam_fpga_top
 
 # If you do not already have an existing IP Integrator design open,
 # you can create a design using the following command:
