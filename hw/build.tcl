@@ -23,6 +23,7 @@
 # 2. The following source(s) files that were local or imported into the original project.
 #    (Please see the '$orig_proj_dir' and '$origin_dir' variable setting below at the start of the script)
 #
+#    # ADD FILES HERE: ALL
 #    "hdl/sam_wrapper.v"
 #    "hdl/instruction_decoder.sv"
 #    "testbenches/instruction_decoder_tb.sv"
@@ -37,6 +38,7 @@
 proc checkRequiredFiles { origin_dir} {
   set status true
   set files [list \
+  # ADD FILES HERE: ALL
  "[file normalize "$origin_dir/hdl/sam_wrapper.v"]"\
  "[file normalize "$origin_dir/hdl/instruction_decoder.sv"]"\
  "[file normalize "$origin_dir/testbenches/instruction_decoder_tb.sv"]"\
@@ -163,6 +165,7 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 set obj [get_filesets sources_1]
 # Import local files from the original project
 set files [list \
+  # ADD FILES HERE: MODULES
  [file normalize "${origin_dir}/hdl/sam_wrapper.v" ]\
  [file normalize "${origin_dir}/hdl/instruction_decoder.sv" ]\
 ]
@@ -201,12 +204,14 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 # Set 'sim_1' fileset object
 set obj [get_filesets sim_1]
 set files [list \
+  # ADD FILES HERE: TESTBENCHES
  [file normalize "${origin_dir}/testbenches/instruction_decoder_tb.sv" ]\
 ]
 set imported_files [import_files -fileset sources_1 $files]
 
 # Set 'sim_1' fileset properties
 set obj [get_filesets sim_1]
+# CHANGE TOP TESTBENCH HERE
 set_property -name "top" -value "instruction_decoder_tb" -objects $obj
 set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
 
