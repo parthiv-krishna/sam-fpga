@@ -21,7 +21,13 @@ source build.tcl
 
 This will generate the Vivado project inside the subdirectory `sam-fpga`.
 
-### Rebuilding the project (e.g. after new RTL files are added or the block diagram is changed)
+With the project now open, click on `Generate Bitstream` on the left side menu. This runs various steps to generate the FPGA programming bitstream. 
+
+Once this completes, go to `File -> Export -> Export Hardware`. Make sure to select the option to include bitstream. Export the hardware to some known location (recommended: just inside the `hw` directory).
+
+### Rebuilding the project
+You will want to do this after new RTL files are added or the block diagram is changed. If you're just editing existing RTL files, you won't need to rebuild the project; you'll just re-generate the bitstream and re-export the hardware using the existing project.
+
 Since the `build.tcl` script easily builds the project repeatably, it's easiest to just rebuild.
 ```bash
 cd hw
@@ -50,3 +56,4 @@ set_property -name "top" -value "module_tb" -objects $obj
 ```
 
 Replace the current `module_tb` with the name of the testbench module you want to run as the default simulation. Note that you can set this up manually in Vivado too by right-clicking the testbench you want and setting it as top. This will just change the default when you rebuild the project.
+
