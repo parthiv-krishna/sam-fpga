@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source sam_fpga_top.tcl
+# source sam_fpga_top_script.tcl
 
 
 # The design that will be created by this Tcl script contains the following 
@@ -132,10 +132,8 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 xilinx.com:ip:processing_system7:5.5\
-xilinx.com:ip:axis_data_fifo:2.0\
 xilinx.com:ip:proc_sys_reset:5.0\
-xilinx.com:ip:axi_mm2s_mapper:1.1\
-xilinx.com:ip:smartconnect:1.0\
+xilinx.com:ip:axi_fifo_mm_s:4.3\
 "
 
    set list_ips_missing ""
@@ -494,36 +492,21 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_USB0_USB0_IO {MIO 28 .. 39} \
     CONFIG.PCW_USB_RESET_ENABLE {1} \
     CONFIG.PCW_USB_RESET_SELECT {Share reset pin} \
-    CONFIG.PCW_USE_S_AXI_GP0 {1} \
+    CONFIG.PCW_USE_S_AXI_GP0 {0} \
   ] $processing_system7_0
-
-
-  # Create instance: axis_data_fifo_0, and set properties
-  set axis_data_fifo_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 axis_data_fifo_0 ]
-  set_property CONFIG.TDATA_NUM_BYTES {4} $axis_data_fifo_0
 
 
   # Create instance: rst_ps7_0_100M, and set properties
   set rst_ps7_0_100M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_100M ]
 
-  # Create instance: axi_mm2s_mapper_0, and set properties
-  set axi_mm2s_mapper_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_mm2s_mapper:1.1 axi_mm2s_mapper_0 ]
-  set_property CONFIG.TDATA_NUM_BYTES {4} $axi_mm2s_mapper_0
+  # Create instance: axi_fifo_mm_s_0, and set properties
+  set axi_fifo_mm_s_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_fifo_mm_s:4.3 axi_fifo_mm_s_0 ]
+  set_property CONFIG.C_USE_TX_CTRL {0} $axi_fifo_mm_s_0
 
 
-  # Create instance: axi_smc, and set properties
-  set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
-  set_property CONFIG.NUM_SI {1} $axi_smc
-
-
-  # Create instance: axi_mem_intercon, and set properties
-  set axi_mem_intercon [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_mem_intercon ]
-  set_property CONFIG.NUM_MI {1} $axi_mem_intercon
-
-
-  # Create instance: axis_data_fifo_1, and set properties
-  set axis_data_fifo_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:2.0 axis_data_fifo_1 ]
-  set_property CONFIG.TDATA_NUM_BYTES {4} $axis_data_fifo_1
+  # Create instance: ps7_0_axi_periph, and set properties
+  set ps7_0_axi_periph [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 ps7_0_axi_periph ]
+  set_property CONFIG.NUM_MI {1} $ps7_0_axi_periph
 
 
   # Create instance: sam_wrapper_0, and set properties
@@ -538,37 +521,32 @@ proc create_root_design { parentCell } {
    }
   
   # Create interface connections
-  connect_bd_intf_net -intf_net axi_mem_intercon_M00_AXI [get_bd_intf_pins axi_mem_intercon/M00_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_GP0]
-  connect_bd_intf_net -intf_net axi_mm2s_mapper_0_M_AXI [get_bd_intf_pins axi_mm2s_mapper_0/M_AXI] [get_bd_intf_pins axi_mem_intercon/S00_AXI]
-  connect_bd_intf_net -intf_net axi_mm2s_mapper_0_M_AXIS [get_bd_intf_pins axi_mm2s_mapper_0/M_AXIS] [get_bd_intf_pins axis_data_fifo_0/S_AXIS]
-  connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins axi_mm2s_mapper_0/S_AXI]
-  connect_bd_intf_net -intf_net axis_data_fifo_1_M_AXIS [get_bd_intf_pins axis_data_fifo_1/M_AXIS] [get_bd_intf_pins axi_mm2s_mapper_0/S_AXIS]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
-  connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins axi_smc/S00_AXI]
+  connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins ps7_0_axi_periph/S00_AXI]
+  connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins ps7_0_axi_periph/M00_AXI] [get_bd_intf_pins axi_fifo_mm_s_0/S_AXI]
 
   # Create port connections
-  connect_bd_net -net axis_data_fifo_0_m_axis_tdata [get_bd_pins axis_data_fifo_0/m_axis_tdata] [get_bd_pins sam_wrapper_0/in_data]
-  connect_bd_net -net axis_data_fifo_0_m_axis_tvalid [get_bd_pins axis_data_fifo_0/m_axis_tvalid] [get_bd_pins sam_wrapper_0/in_valid]
-  connect_bd_net -net axis_data_fifo_1_s_axis_tready [get_bd_pins axis_data_fifo_1/s_axis_tready] [get_bd_pins sam_wrapper_0/out_ready]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk] [get_bd_pins axi_smc/aclk] [get_bd_pins axi_mm2s_mapper_0/aclk] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins processing_system7_0/S_AXI_GP0_ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins sam_wrapper_0/clk] [get_bd_pins axis_data_fifo_0/s_axis_aclk] [get_bd_pins axis_data_fifo_1/s_axis_aclk]
+  connect_bd_net -net axi_fifo_mm_s_0_axi_str_rxd_tready [get_bd_pins axi_fifo_mm_s_0/axi_str_rxd_tready] [get_bd_pins sam_wrapper_0/out_ready]
+  connect_bd_net -net axi_fifo_mm_s_0_axi_str_txd_tdata [get_bd_pins axi_fifo_mm_s_0/axi_str_txd_tdata] [get_bd_pins sam_wrapper_0/in_data]
+  connect_bd_net -net axi_fifo_mm_s_0_axi_str_txd_tlast [get_bd_pins axi_fifo_mm_s_0/axi_str_txd_tlast] [get_bd_pins sam_wrapper_0/in_last]
+  connect_bd_net -net axi_fifo_mm_s_0_axi_str_txd_tvalid [get_bd_pins axi_fifo_mm_s_0/axi_str_txd_tvalid] [get_bd_pins sam_wrapper_0/in_valid]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins axi_fifo_mm_s_0/s_axi_aclk] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins sam_wrapper_0/clk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins rst_ps7_0_100M/peripheral_aresetn] [get_bd_pins axi_mm2s_mapper_0/aresetn] [get_bd_pins axi_smc/aresetn] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/ARESETN] [get_bd_pins sam_wrapper_0/rstn] [get_bd_pins axis_data_fifo_1/s_axis_aresetn] [get_bd_pins axis_data_fifo_0/s_axis_aresetn]
-  connect_bd_net -net sam_wrapper_0_in_ready [get_bd_pins sam_wrapper_0/in_ready] [get_bd_pins axis_data_fifo_0/m_axis_tready]
-  connect_bd_net -net sam_wrapper_0_out_data [get_bd_pins sam_wrapper_0/out_data] [get_bd_pins axis_data_fifo_1/s_axis_tdata]
-  connect_bd_net -net sam_wrapper_0_out_valid [get_bd_pins sam_wrapper_0/out_valid] [get_bd_pins axis_data_fifo_1/s_axis_tvalid]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins rst_ps7_0_100M/peripheral_aresetn] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins axi_fifo_mm_s_0/s_axi_aresetn] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins sam_wrapper_0/rstn]
+  connect_bd_net -net sam_wrapper_0_in_ready [get_bd_pins sam_wrapper_0/in_ready] [get_bd_pins axi_fifo_mm_s_0/axi_str_txd_tready]
+  connect_bd_net -net sam_wrapper_0_out_data [get_bd_pins sam_wrapper_0/out_data] [get_bd_pins axi_fifo_mm_s_0/axi_str_rxd_tdata]
+  connect_bd_net -net sam_wrapper_0_out_last [get_bd_pins sam_wrapper_0/out_last] [get_bd_pins axi_fifo_mm_s_0/axi_str_rxd_tlast]
+  connect_bd_net -net sam_wrapper_0_out_valid [get_bd_pins sam_wrapper_0/out_valid] [get_bd_pins axi_fifo_mm_s_0/axi_str_rxd_tvalid]
 
   # Create address segments
-  assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_mm2s_mapper_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces axi_mm2s_mapper_0/Bridge] [get_bd_addr_segs processing_system7_0/S_AXI_GP0/GP0_DDR_LOWOCM] -force
-  assign_bd_address -offset 0xE0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces axi_mm2s_mapper_0/Bridge] [get_bd_addr_segs processing_system7_0/S_AXI_GP0/GP0_IOP] -force
-  assign_bd_address -offset 0x40000000 -range 0x40000000 -target_address_space [get_bd_addr_spaces axi_mm2s_mapper_0/Bridge] [get_bd_addr_segs processing_system7_0/S_AXI_GP0/GP0_M_AXI_GP0] -force
-  assign_bd_address -offset 0xFC000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces axi_mm2s_mapper_0/Bridge] [get_bd_addr_segs processing_system7_0/S_AXI_GP0/GP0_QSPI_LINEAR] -force
+  assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs axi_fifo_mm_s_0/S_AXI/Mem0] -force
 
 
   # Restore current instance
   current_bd_instance $oldCurInst
 
+  validate_bd_design
   save_bd_design
 }
 # End of create_root_design()
@@ -580,6 +558,4 @@ proc create_root_design { parentCell } {
 
 create_root_design ""
 
-
-common::send_gid_msg -ssname BD::TCL -id 2053 -severity "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
 
