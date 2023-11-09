@@ -37,15 +37,15 @@
 # Check file required for this script exists
 proc checkRequiredFiles { origin_dir} {
   set status true
-  set files [list \
   # ADD FILES HERE: ALL
+  set files [list \
  "[file normalize "$origin_dir/hdl/sam_wrapper.v"]"\
  "[file normalize "$origin_dir/hdl/instruction_decoder.sv"]"\
  "[file normalize "$origin_dir/testbenches/instruction_decoder_tb.sv"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
-      puts " Could not find local file $ifile "
+      puts " Could not find remote file $ifile "
       set status false
     }
   }
@@ -118,6 +118,7 @@ if { $::argc > 0 } {
 
 # Set the directory path for the original project from where this script was exported
 set orig_proj_dir "[file normalize "$origin_dir/"]"
+puts "ORIG_PROJ_DIR $orig_proj_dir"
 
 # Check for paths and files needed for project creation
 set validate_required 0
@@ -164,12 +165,12 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 # Set 'sources_1' fileset object
 set obj [get_filesets sources_1]
 # Import local files from the original project
+# ADD FILES HERE: MODULES
 set files [list \
-  # ADD FILES HERE: MODULES
  [file normalize "${origin_dir}/hdl/sam_wrapper.v" ]\
  [file normalize "${origin_dir}/hdl/instruction_decoder.sv" ]\
 ]
-set imported_files [import_files -fileset sources_1 $files]
+add_files -norecurse -fileset $obj $files
 
 
 # Set 'sources_1' fileset file properties for remote files
@@ -203,11 +204,11 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 
 # Set 'sim_1' fileset object
 set obj [get_filesets sim_1]
+# ADD FILES HERE: TESTBENCHES
 set files [list \
-  # ADD FILES HERE: TESTBENCHES
  [file normalize "${origin_dir}/testbenches/instruction_decoder_tb.sv" ]\
 ]
-set imported_files [import_files -fileset sources_1 $files]
+add_files -norecurse -fileset $obj $files
 
 # Set 'sim_1' fileset properties
 set obj [get_filesets sim_1]
