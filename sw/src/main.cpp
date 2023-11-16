@@ -22,10 +22,10 @@ int main() {
 	}
 
 	cout << "TX" << endl;
-	fifo.Send(txData);
+	fifo.send(txData);
 
 	cout << "RX" << endl;
-	std::vector<u32> rxData = fifo.Receive();
+	std::vector<u32> rxData = fifo.receive();
 
 	for (int i = 0; i < N; i++) {
 		cout << "tx " << txData[i] << " rx " << rxData[i];
