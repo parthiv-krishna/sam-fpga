@@ -27,6 +27,7 @@
 #    "hdl/sam_wrapper.v"
 #    "hdl/instruction_decoder.sv"
 #    "testbenches/instruction_decoder_tb.sv"
+#    "hdl/instruction_decoder_params.sv"
 #
 # 3. The following remote source files that were added to the original project:-
 #
@@ -42,6 +43,7 @@ proc checkRequiredFiles { origin_dir} {
  "[file normalize "$origin_dir/hdl/sam_wrapper.v"]"\
  "[file normalize "$origin_dir/hdl/instruction_decoder.sv"]"\
  "[file normalize "$origin_dir/testbenches/instruction_decoder_tb.sv"]"\
+ "[file normalize "$origin_dir/hdl/instruction_decoder_params.sv"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
@@ -169,6 +171,8 @@ set obj [get_filesets sources_1]
 set files [list \
  [file normalize "${origin_dir}/hdl/sam_wrapper.v" ]\
  [file normalize "${origin_dir}/hdl/instruction_decoder.sv" ]\
+ [file normalize "${origin_dir}/hdl/instruction_decoder_params.sv" ]\
+
 ]
 add_files -norecurse -fileset $obj $files
 
