@@ -10,7 +10,7 @@ module instruction_decoder
 	parameter WRITE_DATA_LENGTH = instruction_decoder_params::WRITE_DATA_LENGTH,
 	parameter WRITE_ADDRESS_LENGTH = instruction_decoder_params::WRITE_ADDRESS_LENGTH,
 	parameter READ_ADDRESS_LENGTH = instruction_decoder_params::READ_ADDRESS_LENGTH
-}
+)
 (
 	input logic [INPUT_SIGNAL_LENGTH-1:0] input_signal,
 	output logic wr_en,
@@ -34,23 +34,23 @@ always @(*) begin
 		//write address, bits 16-29 of original input (14 bits address)
 		wr_addr = input_signal[INPUT_SIGNAL_LENGTH-3:INPUT_SIGNAL_LENGTH-WRITE_ADDRESS_LENGTH-2];
 		wr_data = input_signal[WRITE_DATA_LENGTH-1:0];
-		rd_start_addr = READ_ADDRESS_LENGTH'b0;
-		rd_end_addr = READ_ADDRESS_LENGTH'b0;
+		rd_start_addr = {READ_ADDRESS_LENGTH{1'b0}};
+		rd_end_addr = {READ_ADDRESS_LENGTH{1'b0}};
 	end
 	else if (rd_en) begin
 		//read start address, bits 15-28 of original input (14 bits)
 		//read end address, bits 0-13 of original input (14 bits)
 		rd_start_addr = input_signal[INPUT_SIGNAL_LENGTH-4:READ_ADDRESS_LENGTH+1];
 		rd_end_addr = input_signal[READ_ADDRESS_LENGTH-1:0];
-		wr_addr = WRITE_ADDRESS_LENGTH'b0;
-		wr_data = WRITE_DATA_LENGTH'b0;
+		wr_addr = {WRITE_ADDRESS_LENGTH{1'b0}};
+		wr_data = {WRITE_DATA_LENGTH{1'b0}};
 	end
 	else begin
 		//initialize all output vars to 0
-		wr_addr = WRITE_ADDRESS_LENGTH'b0;
-		wr_data = WRITE_DATA_LENGTH'b0;
-		rd_start_addr = READ_ADDRESS_LENGTH'b0;
-		rd_end_addr = READ_ADDRESS_LENGTH'b0;
+		wr_addr = {WRITE_ADDRESS_LENGTH{1'b0}};
+		wr_data = {WRITE_DATA_LENGTH{1'b0}};
+		rd_start_addr = {READ_ADDRESS_LENGTH{1'b0}};
+		rd_end_addr = {READ_ADDRESS_LENGTH{1'b0}};
 	end
 end
 
