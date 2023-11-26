@@ -3,14 +3,14 @@
 // instruction_decoder_tb: testbench for instruction_decoder
 
 module instruction_decoder_tb;
-	logic [31:0] test_input;
+	logic [INPUT_SIGNAL_LENGTH-1:0] test_input;
 	logic wr_en_test;
 	logic rd_en_test;
 	logic go_test;
-	logic [14:0] wr_addr_test;
-	logic [14:0] wr_data_test;
-	logic [14:0] rd_start_addr_test;
-	logic [14:0] rd_end_addr_test;
+	logic [WRITE_ADDRESS_LENGTH-1:0] wr_addr_test;
+	logic [WRITE_DATA_LENGTH-1:0] wr_data_test;
+	logic [READ_ADDRESS_LENGTH-1:0] rd_start_addr_test;
+	logic [READ_ADDRESS_LENGTH-1:0] rd_end_addr_test;
 
 	instruction_decoder decoder (
 		.input_signal(test_input),
@@ -33,6 +33,8 @@ module instruction_decoder_tb;
 
 		//passing in first test_input
 		#10 test_input = 32'b01_001000010000100_010000100011100;
+		
+		#10
 
 		//display results
 		$display("Test 1: Input = %b, wr_en = %b, rd_en = %b, go = %b, wr_addr = %b, wr_data = %b, rd_start_addr = %b, rd_end_addr = %b", test_input, wr_en_test, rd_en_test, go_test, wr_addr_test, wr_data_test, rd_start_addr_test, rd_end_addr_test);
