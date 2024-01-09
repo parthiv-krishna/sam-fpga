@@ -3,17 +3,19 @@
 
 class Instruction {
 public:
+	static const size_t kBitsPerWord = 32;
+  static const size_t kOpcodeBits = 2;
+  static const size_t kArgBits = kBitsPerWord - kOpcodeBits;
+
 	u32 toWord() {
-		return (opCode() << (kBitsPerWord - 2) | data());
+		return (opCode() << kArgBits | args());
 	};
 
 	// only the lower 2 bits should be set
 	virtual u32 opCode() const = 0;
 
 	// only the lower 30 bits should be set
-	virtual u32 data() const = 0;
-
-	static const size_t kBitsPerWord;
+	virtual u32 args() const = 0;
 };
 
 class StoreInstruction : Instruction {
@@ -30,8 +32,8 @@ public:
 		return kOpCode;
 	}
 
-	u32 data() const override {
-		return (_addr << 16) |  _value;
+	u32 args() const override {
+		return (_addr << 16) | _value;
 	}
 
 private:
@@ -54,7 +56,7 @@ public:
 		return kOpCode;
 	}
 	//potentially rename method below?
-	u32 data() const override {
+	u32 args() const override {
 		return (_startaddr << 16) | _endaddr;
 	}
 private:
@@ -67,19 +69,19 @@ private:
 class GoInstruction : Instruction {
 	// TODO
 public:
-	//just defined placeholder u32 in constructor; maybe modify since only thing which is important should be the opcode for the go instruction?
-	GoInstruction(u32 placeholder) {
-		_placeholder = placeholder;
+	GoInstruction() {
 	}
 
 	u32 opCode() const override {
 		return kOpCode;
 	}
 
+  u32 args() const override {
+    return 0;
+  }
+
 private:
 	static const u16 kOpCode = 10;
-
-	u32 _placeholder;
 };
 
 #endif // INSTRUCTIONS_H
