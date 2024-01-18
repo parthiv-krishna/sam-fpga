@@ -2,12 +2,18 @@
 // sam_wrapper: wraps around all custom HDL logic
 // and exposes a basic interface to the block diagram
 
-module sam_wrapper(
+//import instruction_decoder_params::*;
+
+module sam_wrapper
+//#(
+//	parameter INPUT_SIGNAL_LENGTH = instruction_decoder_params::INPUT_SIGNAL_LENGTH,
+//	parameter WRITE_DATA_LENGTH = instruction_decoder_params::WRITE_DATA_LENGTH,
+//	parameter WRITE_ADDRESS_LENGTH = instruction_decoder_params::WRITE_ADDRESS_LENGTH,
+//	parameter READ_ADDRESS_LENGTH = instruction_decoder_params::READ_ADDRESS_LENGTH
+//)
+(
     input clk,
     input rstn,
-    //maybe change line below to (could make similar change for out_data if
-    //needed/don't want to use constants):
-    //input[instruction_decoder_params::INPUT_SIGNAL_LENGTH-1:0] in_data
     input [31:0] in_data,
     output in_ready,
     input in_valid,
@@ -16,8 +22,11 @@ module sam_wrapper(
     input out_ready,
     output out_valid,
     output out_last
-    );
-    
+);
+    parameter INPUT_SIGNAL_LENGTH = 32;
+    parameter WRITE_DATA_LENGTH = 16;
+    parameter WRITE_ADDRESS_LENGTH = 14;
+    parameter READ_ADDRESS_LENGTH = 14;
     //assign out_data = in_data + 1;
     //assign in_ready = out_ready;
     //assign out_valid = in_valid;
@@ -35,10 +44,10 @@ module sam_wrapper(
     );
 
     //using registers below as 'intermediate interface' between id and ram signals
-    reg [instruction_decoder_params::WRITE_ADDRESS_LENGTH-1:0] reg_wr_addr;
-    reg [instruction_decoder_params::WRITE_DATA_LENGTH-1:0] reg_wr_data;
-    reg [instruction_decoder_params::READ_ADDRESS_LENGTH-1:0] reg_rd_start_addr;
-    reg [instruction_decoder_params::READ_ADDRESS_LENGTH-1:0] reg_rd_end_addr;
+    reg [WRITE_ADDRESS_LENGTH-1:0] reg_wr_addr;
+    reg [WRITE_DATA_LENGTH-1:0] reg_wr_data;
+    reg [READ_ADDRESS_LENGTH-1:0] reg_rd_start_addr;
+    reg [READ_ADDRESS_LENGTH-1:0] reg_rd_end_addr;
     reg reg_wr_en, reg_rd_en, reg_go;
     
     //connecting instruction_decoder outputs to the registers
@@ -47,10 +56,10 @@ module sam_wrapper(
 	    //indicates reset condition,  so if this signal is low then we
 	    //reset the register vals (all 0's)
 	    if(~rstn) begin
-		    reg_wr_addr <= {instruction_decoder_params::WRITE_ADDRESS_LENGTH{1'b0}};
-		    reg_wr_data <= {instruction_decoder_params::WRITE_DATA_LENGTH{1'b0}};
-		    reg_rd_start_addr <= {instruction_decoder_params::READ_ADDRESS_LENGTH{1'b0}};
-		    reg_rd_end_addr <= {instruction_decoder_params::READ_ADDRESS_LENGTH{1'b0}};
+		    reg_wr_addr <= {WRITE_ADDRESS_LENGTH{1'b0}};
+		    reg_wr_data <= {WRITE_DATA_LENGTH{1'b0}};
+		    reg_rd_start_addr <= {READ_ADDRESS_LENGTH{1'b0}};
+		    reg_rd_end_addr <= {READ_ADDRESS_LENGTH{1'b0}};
 		    reg_wr_en <= 1'b0;
 		    reg_rd_en <= 1'b0;
 		    reg_go <= 1'b0;
@@ -71,7 +80,7 @@ module sam_wrapper(
 
     //Mux for selecting write address or read start address based on read
     //enable signal (if 0 then write address and if 1 then rd_start_addr)
-    reg[instruction_decoder_params::WRITE_ADDRESS_LENGTH-1:0] mux_addr_result;
+    reg[WRITE_ADDRESS_LENGTH-1:0] mux_addr_result;
     always @* begin
 	    if(reg_rd_en) begin
 		    mux_addr_result = reg_rd_start_addr;
@@ -82,7 +91,7 @@ module sam_wrapper(
 
     //instantiating ram_16x1024 module
     ram_16x1024 ram_inst (
-	    .addr(muxed_addr),
+	    .addr(mux_addr_result),
 	    .din(reg_wr_data),
 	    .dout(out_data),
 	    .en(reg_rd_en),
@@ -90,12 +99,10 @@ module sam_wrapper(
     );
 
     //connecting remaining signals for the sam_wrapper module
-    //out_ready signal - connected to ram module above-might need additional
-    //assign statement?
     //**double check these assign statements/add any additional ones
     assign in_ready = out_ready && out_valid && !(in_last);
     assign out_valid = out_ready && (reg_rd_en || reg_wr_en);
-    assign out_last = reg_rd_en && in_last;
+    assign out_last = reg_rd_en && out_ready && in_last;
 
 
 endmodule
