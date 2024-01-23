@@ -4,6 +4,8 @@
 
 import instruction_decoder_params::*;
 
+enum {OPCODE_GO = 2'b10, OPCODE_LOAD = 2'b01, OPCODE_STORE = 2'b00};
+
 module instruction_decoder
 #(
 	parameter INPUT_SIGNAL_LENGTH = instruction_decoder_params::INPUT_SIGNAL_LENGTH,
@@ -13,6 +15,7 @@ module instruction_decoder
 )
 (
 	input logic [INPUT_SIGNAL_LENGTH-1:0] input_signal,
+	input logic input_valid,
 	output logic wr_en,
 	output logic rd_en,
 	output logic go,
@@ -21,11 +24,12 @@ module instruction_decoder
 	output logic [READ_ADDRESS_LENGTH-1:0] rd_start_addr,
 	output logic [READ_ADDRESS_LENGTH-1:0] rd_end_addr
 );
+
 //if the first bit of input_signal is a 1, assign go to be a 1
-assign go = (input_signal[INPUT_SIGNAL_LENGTH] == 1'b1) ? 1 : 0;
+assign go = (input_signal[INPUT_SIGNAL_LENGTH] == 1'b1 && input_valid) ? 1 : 0;
 //check first two bits of the input signal to see if we should read or write
-assign wr_en = (input_signal[INPUT_SIGNAL_LENGTH-1:INPUT_SIGNAL_LENGTH-2] == 2'b00) ? 1 : 0;
-assign rd_en = (input_signal[INPUT_SIGNAL_LENGTH-1:INPUT_SIGNAL_LENGTH-2] == 2'b01) ? 1 : 0;
+assign wr_en = (input_signal[INPUT_SIGNAL_LENGTH-1:INPUT_SIGNAL_LENGTH-2] == 2'b00 && input_valid) ? 1 : 0;
+assign rd_en = (input_signal[INPUT_SIGNAL_LENGTH-1:INPUT_SIGNAL_LENGTH-2] == 2'b01 && input_valid) ? 1 : 0;
 
 //assigning values to the remaining outputs in the module declaration
 always @(*) begin

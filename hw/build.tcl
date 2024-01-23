@@ -30,6 +30,7 @@
 #    "hdl/ff_lib.v"
 #    "ip/dp_ram_16x16384/dp_ram_16x16384.xci"
 #    "testbenches/instruction_decoder_tb.sv"
+#    "testbenches/simple_memory_tb.sv"
 #
 # 3. The following remote source files that were added to the original project:-
 #
@@ -48,6 +49,7 @@ proc checkRequiredFiles { origin_dir} {
  "[file normalize "$origin_dir/hdl/ff_lib.v"]"\
  "[file normalize "$origin_dir/ip/dp_ram_16x16384/dp_ram_16x16384.xci"]"\
  "[file normalize "$origin_dir/testbenches/instruction_decoder_tb.sv"]"\
+ "[file normalize "$origin_dir/testbenches/simple_memory_tb.sv"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
@@ -216,13 +218,14 @@ set obj [get_filesets sim_1]
 # ADD FILES HERE: TESTBENCHES
 set files [list \
  [file normalize "${origin_dir}/testbenches/instruction_decoder_tb.sv" ]\
+ [file normalize "${origin_dir}/testbenches/simple_memory_tb.sv" ]\
 ]
 add_files -norecurse -fileset $obj $files
 
 # Set 'sim_1' fileset properties
 set obj [get_filesets sim_1]
 # CHANGE TOP TESTBENCH HERE
-set_property -name "top" -value "instruction_decoder_tb" -objects $obj
+set_property -name "top" -value "simple_memory_tb" -objects $obj
 set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
 
 # Set 'utils_1' fileset object

@@ -32,8 +32,23 @@ module sam_wrapper
     //assign out_valid = in_valid;
     //assign out_last = in_last;
 
+
+    //using wires and registers below as 'intermediate interface' between id and ram signals
+    wire [WRITE_ADDRESS_LENGTH-1:0] reg_wr_addr;
+    wire [WRITE_DATA_LENGTH-1:0] reg_wr_data;
+    wire [READ_ADDRESS_LENGTH-1:0] reg_rd_start_addr;
+    wire [READ_ADDRESS_LENGTH-1:0] reg_rd_end_addr;
+    wire reg_wr_en, reg_rd_en, reg_go;
+    
+    wire [WRITE_ADDRESS_LENGTH-1:0] wire_wr_addr;
+    wire [WRITE_DATA_LENGTH-1:0] wire_wr_data;
+    wire [READ_ADDRESS_LENGTH-1:0] wire_rd_start_addr;
+    wire [READ_ADDRESS_LENGTH-1:0] wire_rd_end_addr;
+    wire wire_wr_en, wire_rd_en, wire_go;
+    
     instruction_decoder id(
 	    .input_signal(in_data),
+	    .input_valid(in_valid),
 	    .wr_en(wire_wr_en),
 	    .rd_en(wire_rd_en),
 	    .go(wire_go),
@@ -43,63 +58,52 @@ module sam_wrapper
 	    .rd_end_addr(wire_rd_end_addr)
     );
 
-    //using wires and registers below as 'intermediate interface' between id and ram signals
-    reg [WRITE_ADDRESS_LENGTH-1:0] reg_wr_addr;
-    reg [WRITE_DATA_LENGTH-1:0] reg_wr_data;
-    reg [READ_ADDRESS_LENGTH-1:0] reg_rd_start_addr;
-    reg [READ_ADDRESS_LENGTH-1:0] reg_rd_end_addr;
-    reg reg_wr_en, reg_rd_en, reg_go;
-    
-    wire [WRITE_ADDRESS_LENGTH-1:0] wire_wr_addr;
-    wire [WRITE_DATA_LENGTH-1:0] wire_wr_data;
-    wire [READ_ADDRESS_LENGTH-1:0] wire_rd_start_addr;
-    wire [READ_ADDRESS_LENGTH-1:0] wire_rd_end_addr;
-    wire wire_wr_en, wire_rd_en, wire_go;
 
     //Note: confirm if active low or high reset
-    diffre #(1) ff1 (
+    dffre #(1) ff_wr_en (
 	    .clk(clk),
 	    .r(~rstn),
-	    .en(in_valid),
+	    .en(1),
 	    .d(wire_wr_en),
 	    .q(reg_wr_en)
     );
-    diffre #(1) ff2 (
+    dffre #(1) ff_rd_en (
 	    .clk(clk),
 	    .r(~rstn),
-	    .en(in_valid),
+	    .en(1),
 	    .d(wire_rd_en),
 	    .q(reg_rd_en)
     );
-    diffre #(1) ff3 (
+    dffre #(1) ff_go (
 	    .clk(clk),
 	    .r(~rstn),
-	    .en(in_valid),
+	    .en(1),
 	    .d(wire_go),
 	    .q(reg_go)
     );
-    diffre #(WRITE_ADDRESS_LENGTH) ff4 (
+    
+    dffre #(WRITE_ADDRESS_LENGTH) ff_wr_addr (
 	    .clk(clk),
 	    .r(~rstn),
 	    .en(in_valid),
 	    .d(wire_wr_addr),
 	    .q(reg_wr_addr)
     );
-    diffre #(WRITE_DATA_LENGTH) ff5 (
+    dffre #(WRITE_DATA_LENGTH) ff_wr_data (
 	    .clk(clk),
 	    .r(~rstn),
 	    .en(in_valid),
 	    .d(wire_wr_data),
 	    .q(reg_wr_data)
     );
-    diffre #(READ_ADDRESS_LENGTH) ff6 (
+    dffre #(READ_ADDRESS_LENGTH) ff_rd_start_addr (
 	    .clk(clk),
 	    .r(~rstn),
 	    .en(in_valid),
 	    .d(wire_rd_start_addr),
 	    .q(reg_rd_start_addr)
     );
-    diffre #(READ_ADDRESS_LENGTH) ff7 (
+    dffre #(READ_ADDRESS_LENGTH) ff_rd_end_addr (
 	    .clk(clk),
 	    .r(~rstn),
 	    .en(in_valid),
@@ -146,20 +150,24 @@ module sam_wrapper
 	    end
     end
 
-    //instantiating ram_16x1024 module
-    ram_16x1024 ram_inst (
+    //instantiating ram_16x16384 module
+    wire [15:0] ram_data_out;
+    my_ram ram (
 	    .addr(mux_addr_result),
+	    .clk(clk),
 	    .din(reg_wr_data),
-	    .dout(out_data),
-	    .en(reg_rd_en),
+	    .dout(ram_data_out),
+//	    .ena(reg_rd_en),
 	    .wen(reg_wr_en)
     );
+    
+    assign out_data = {16'b0, ram_data_out};
 
     //connecting remaining signals for the sam_wrapper module
     
     //need one cycle delay for out_valid (out_valid is just rd_en with
     //a 1 cycle delay)
-    diffre #(1) ff8 (
+    dffre #(1) ff8 (
 	    .clk(clk),
 	    .r(~rstn),
 	    .en(1),
