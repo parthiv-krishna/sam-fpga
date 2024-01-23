@@ -34,22 +34,79 @@ module sam_wrapper
 
     instruction_decoder id(
 	    .input_signal(in_data),
-	    .wr_en(reg_wr_en),
-	    .rd_en(reg_rd_en),
-	    .go(reg_go),
-	    .wr_addr(reg_wr_addr),
-	    .wr_data(reg_wr_data),
-	    .rd_start_addr(reg_rd_start_addr),
-	    .rd_end_addr(reg_rd_end_addr)
+	    .wr_en(wire_wr_en),
+	    .rd_en(wire_rd_en),
+	    .go(wire_go),
+	    .wr_addr(wire_wr_addr),
+	    .wr_data(wire_wr_data),
+	    .rd_start_addr(wire_rd_start_addr),
+	    .rd_end_addr(wire_rd_end_addr)
     );
 
-    //using registers below as 'intermediate interface' between id and ram signals
+    //using wires and registers below as 'intermediate interface' between id and ram signals
     reg [WRITE_ADDRESS_LENGTH-1:0] reg_wr_addr;
     reg [WRITE_DATA_LENGTH-1:0] reg_wr_data;
     reg [READ_ADDRESS_LENGTH-1:0] reg_rd_start_addr;
     reg [READ_ADDRESS_LENGTH-1:0] reg_rd_end_addr;
     reg reg_wr_en, reg_rd_en, reg_go;
     
+    wire [WRITE_ADDRESS_LENGTH-1:0] wire_wr_addr;
+    wire [WRITE_DATA_LENGTH-1:0] wire_wr_data;
+    wire [READ_ADDRESS_LENGTH-1:0] wire_rd_start_addr;
+    wire [READ_ADDRESS_LENGTH-1:0] wire_rd_end_addr;
+    wire wire_wr_en, wire_rd_en, wire_go;
+
+    //Note: confirm if active low or high reset
+    diffre #(1) ff1 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_wr_en),
+	    .q(reg_wr_en)
+    );
+    diffre #(1) ff2 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_rd_en),
+	    .q(reg_rd_en)
+    );
+    diffre #(1) ff3 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_go),
+	    .q(reg_go)
+    );
+    diffre #(WRITE_ADDRESS_LENGTH) ff4 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_wr_addr),
+	    .q(reg_wr_addr)
+    );
+    diffre #(WRITE_DATA_LENGTH) ff5 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_wr_data),
+	    .q(reg_wr_data)
+    );
+    diffre #(READ_ADDRESS_LENGTH) ff6 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_rd_start_addr),
+	    .q(reg_rd_start_addr)
+    );
+    diffre #(READ_ADDRESS_LENGTH) ff7 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(in_valid),
+	    .d(wire_rd_end_addr),
+	    .q(reg_rd_end_addr)
+    );
+/*
     //connecting instruction_decoder outputs to the registers
     always @(posedge clk or negedge rstn) begin
 	    //rstn - usually active low asynch reset signal,  low signal (0)
@@ -77,7 +134,7 @@ module sam_wrapper
 
 	    end
     end 
-
+*/
     //Mux for selecting write address or read start address based on read
     //enable signal (if 0 then write address and if 1 then rd_start_addr)
     reg[WRITE_ADDRESS_LENGTH-1:0] mux_addr_result;
@@ -99,10 +156,28 @@ module sam_wrapper
     );
 
     //connecting remaining signals for the sam_wrapper module
-    //**double check these assign statements/add any additional ones
+    
+    //need one cycle delay for out_valid (out_valid is just rd_en with
+    //a 1 cycle delay)
+    diffre #(1) ff8 (
+	    .clk(clk),
+	    .r(~rstn),
+	    .en(1),
+	    .d(reg_rd_en),
+	    .q(out_valid)
+    );
+    //setting in_ready temporarily to 1, in_ready=1 indicates that no
+    //instruction is currently executing/new instruction can be loaded
+    assign in_ready = 1'b1;
+    //setting out_last temporarily to 1
+    assign out_last = 1'b1;
+
+    //TODO: modify following assign statements in future when FSM is implemented
+    //(i.e. read or write multiple pieces of data at the same time)
+    /*
     assign in_ready = out_ready && out_valid && !(in_last);
     assign out_valid = out_ready && (reg_rd_en || reg_wr_en);
     assign out_last = reg_rd_en && out_ready && in_last;
-
+    */
 
 endmodule
