@@ -28,6 +28,7 @@
 #    "hdl/instruction_decoder.sv"
 #    "hdl/instruction_decoder_params.sv"
 #    "hdl/ff_lib.v"
+#    "hdl/address_generator.sv"
 #    "ip/dp_ram_16x16384/dp_ram_16x16384.xci"
 #    "testbenches/instruction_decoder_tb.sv"
 #    "testbenches/simple_memory_tb.sv"
@@ -47,6 +48,7 @@ proc checkRequiredFiles { origin_dir} {
  "[file normalize "$origin_dir/hdl/instruction_decoder.sv"]"\
  "[file normalize "$origin_dir/hdl/instruction_decoder_params.sv"]"\
  "[file normalize "$origin_dir/hdl/ff_lib.v"]"\
+ "[file normalize "$origin_dir/hdl/address_generator.sv"]"\
  "[file normalize "$origin_dir/ip/dp_ram_16x16384/dp_ram_16x16384.xci"]"\
  "[file normalize "$origin_dir/testbenches/instruction_decoder_tb.sv"]"\
  "[file normalize "$origin_dir/testbenches/simple_memory_tb.sv"]"\
@@ -179,6 +181,7 @@ set files [list \
  [file normalize "${origin_dir}/hdl/instruction_decoder.sv" ]\
  [file normalize "${origin_dir}/hdl/instruction_decoder_params.sv" ]\
  [file normalize "${origin_dir}/hdl/ff_lib.v" ]\
+ [file normalize "${origin_dir}/hdl/address_generator.sv" ]\
  [file normalize "$origin_dir/ip/dp_ram_16x16384/dp_ram_16x16384.xci"]\
 ]
 add_files -norecurse -fileset $obj $files
