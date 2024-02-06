@@ -42,9 +42,9 @@ always @(*) begin
 		rd_end_addr = {READ_ADDRESS_LENGTH{1'b0}};
 	end
 	else if (rd_en) begin
-		//read start address, bits 15-28 of original input (14 bits)
+		//read start address, bits 16-29 of original input (14 bits)
 		//read end address, bits 0-13 of original input (14 bits)
-		rd_start_addr = input_signal[INPUT_SIGNAL_LENGTH-4:READ_ADDRESS_LENGTH+1];
+		rd_start_addr = input_signal[INPUT_SIGNAL_LENGTH-4+1:READ_ADDRESS_LENGTH+1+1];
 		rd_end_addr = input_signal[READ_ADDRESS_LENGTH-1:0];
 		wr_addr = {WRITE_ADDRESS_LENGTH{1'b0}};
 		wr_data = {WRITE_DATA_LENGTH{1'b0}};

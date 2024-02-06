@@ -14,6 +14,7 @@ module simple_memory_tb(
     reg out_ready;
     reg out_valid;
     reg out_last;
+    reg mode = 1'b0;
     
     // connect all ports that have the same name as signals (which is all of them)
     sam_wrapper sam(.*);
@@ -49,14 +50,14 @@ module simple_memory_tb(
         
         // send read
         #100
-        in_data = {2'b01, 1'b0, 14'd5, 1'b0, 14'b0}; // LOAD mem[5]
+        in_data = {2'b01, 14'd5, 1'b0, 1'b0, 14'b0}; // LOAD mem[5]
         in_valid = 1;
         #10
         in_valid = 0;
         
         // send read
         #100
-        in_data = {2'b01, 1'b0, 14'd20, 1'b0, 14'b0}; // LOAD mem[20]
+        in_data = {2'b01, 14'd20, 1'b0, 1'b0, 14'b0}; // LOAD mem[20]
         in_valid = 1;
         #10
         in_valid = 0;

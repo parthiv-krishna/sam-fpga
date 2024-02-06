@@ -21,7 +21,8 @@ module sam_wrapper
     output [31:0] out_data,
     input out_ready,
     output out_valid,
-    output out_last
+    output out_last,
+    input mode
 );
     parameter INPUT_SIGNAL_LENGTH = 32;
     parameter WRITE_DATA_LENGTH = 16;
@@ -139,26 +140,49 @@ module sam_wrapper
 	    end
     end 
 */
-    //Mux for selecting write address or read start address based on read
-    //enable signal (if 0 then write address and if 1 then rd_start_addr)
-    reg[WRITE_ADDRESS_LENGTH-1:0] mux_addr_result;
+
+    //deduce mode using this logic or pass in as input? : wire mode = go && out_ready;
+    //Mux to help select between 'id' and 'sam' modes (0 for id, and 1 for sam)
+    //If 'id' : use mux_addr_result, reg_wr_data, reg_wr_en
+    //If 'sam' : use sam_addr_in, sam_wr_data, sam_wr_en
+    //ram_data_out and clk can be the same signal regardless of if operating in sam or id mode
+    wire [WRITE_ADDRESS_LENGTH-1:0] sam_addr_in;
+    wire [WRITE_DATA_LENGTH-1:0] sam_wr_data;
+    wire sam_wr_en;
+    wire [WRITE_ADDRESS_LENGTH-1:0] mode_mux_addr;
+    wire [WRITE_DATA_LENGTH-1:0] mode_mux_datain;
+    wire mode_mux_wr_en;
+    reg [WRITE_ADDRESS_LENGTH-1:0] mux_addr_result;
+
     always @* begin
-	    if(reg_rd_en) begin
-		    mux_addr_result = reg_rd_start_addr;
+	    if(mode) begin
+		    mode_mux_addr = sam_addr_in;
+		    mode_mux_datain = sam_wr_data;
+		    mode_mux_wr_en = sam_wr_en;
 	    end else begin
-		    mux_addr_result = reg_wr_addr;
+		    //Mux for selecting write address or read start address based on read
+		    //enable signal (if 0 then write address and if 1 then rd_start_addr)
+		    if(reg_rd_en) begin
+			    mux_addr_result = reg_rd_start_addr;
+		    end else begin
+			    mux_addr_result = reg_wr_addr;
+		    end
+		    mode_mux_addr = mux_addr_result;
+		    mode_mux_datain = reg_wr_data;
+		    mode_mux_wr_en = reg_wr_en;
 	    end
     end
+
 
     //instantiating ram_16x16384 module
     wire [15:0] ram_data_out;
     my_ram ram (
-	    .addr(mux_addr_result),
+	    .addr(mode_mux_addr),
 	    .clk(clk),
-	    .din(reg_wr_data),
+	    .din(mode_mux_datain),
 	    .dout(ram_data_out),
 //	    .ena(reg_rd_en),
-	    .wen(reg_wr_en)
+	    .wen(mode_mux_wr_en)
     );
     
     assign out_data = {16'b0, ram_data_out};
