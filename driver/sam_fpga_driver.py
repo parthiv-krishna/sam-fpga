@@ -2,8 +2,18 @@ import argparse
 import enum
 import logging
 import pathlib
+import random
 import serial
-from typing import Tuple, List
+from typing import List, Optional, Tuple
+
+class DummySerial:
+    def write(self, bytestring: bytes):
+        logging.info(f"Would have sent {bytestring}")
+
+    def read(self, n: int) -> bytes:
+        bytestring = bytes(random.getrandbits(8) for _ in range(n))
+        logging.info(f"Read: returning random data {bytestring}")
+        return bytestring
 
 class SamFpgaDriver:
     class OpCode(enum.Enum):
@@ -15,7 +25,10 @@ class SamFpgaDriver:
     DATA_BITS = 30
 
     def __init__(self, serial_port: pathlib.Path, serial_baud: int):
-        self.serial_port = serial.Serial(serial_port, serial_baud)
+        if serial_port is None:
+            self.serial_port = DummySerial()
+        else:
+            self.serial_port = serial.Serial(serial_port, serial_baud)
         logging.info(f"Opened serial port at {self.serial_port.port} with baud rate {self.serial_port.baudrate}")
     
     def __del__(self):
@@ -44,7 +57,6 @@ class SamFpgaDriver:
         self.send_uint32(inst)
 
     def load(self, start_addr: int, end_addr: int) -> List[Tuple[int, int]]:
-
         # assert 0 < start_addr < 2^14?
         # assert 0 < end_addr < 2^14?
         inst = 0
@@ -80,7 +92,7 @@ def main(serial_port: pathlib.Path, serial_baud: int):
 
 if __name__ == "__main__":
      parser = argparse.ArgumentParser()
-     parser.add_argument("-s", "--serial_port", help="serial port to connect to", default="/dev/ttyUSB0")
+     parser.add_argument("-s", "--serial_port", help="serial port to connect to", default=None)
      parser.add_argument("-b", "--serial_baud", help="baud rate for serial port", default=115200)
 
      args = parser.parse_args()
