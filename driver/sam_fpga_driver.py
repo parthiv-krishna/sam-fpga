@@ -6,14 +6,23 @@ import random
 import serial
 from typing import List, Optional, Tuple
 
+logging.basicConfig(level=logging.INFO)
+
 class DummySerial:
+    def __init__(self):
+        self.port = "DUMMY"
+        self.baudrate = 0
+
     def write(self, bytestring: bytes):
-        logging.info(f"Would have sent {bytestring}")
+        logging.info(f"DummySerial.write(): Would have sent {bytestring}")
 
     def read(self, n: int) -> bytes:
         bytestring = bytes(random.getrandbits(8) for _ in range(n))
-        logging.info(f"Read: returning random data {bytestring}")
+        logging.info(f"DummySerial.read(): returning random data {bytestring}")
         return bytestring
+
+    def close(self):
+        logging.info(f"DummySerial.close()")
 
 class SamFpgaDriver:
     class OpCode(enum.Enum):
