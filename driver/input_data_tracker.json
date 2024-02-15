@@ -1,0 +1,37 @@
+{
+    "B": {
+        "banks_crd_seg": [0,1,2],
+        "input_seg": [
+            "tensor_B_mode_0_seg",
+            "tensor_B_mode_1_seg",
+            "tensor_B_mode_2_seg"
+        ],
+        "input_crd": [
+            "tensor_B_mode_0_crd",
+            "tensor_B_mode_1_crd",
+            "tensor_B_mode_2_crd"
+        ],
+        "value": "tensor_B_mode_vals",
+        "bank_value": 3,
+        "shape": "tensor_B_mode_shape",
+        "bank_shape": 4
+    },
+    
+    "C": {
+        "banks_crd_seg": [5,6,7],
+        "input_seg": [
+            "tensor_C_mode_0_seg",
+            "tensor_C_mode_1_seg",
+            "tensor_C_mode_2_seg"
+        ],
+        "input_crd": [
+            "tensor_C_mode_0_crd",
+            "tensor_C_mode_1_crd",
+            "tensor_C_mode_2_crd"
+        ],
+        "value": "tensor_C_mode_vals",
+        "bank_value": 8,
+        "shape": "tensor_C_mode_shape",
+        "bank_shape": 9
+    }
+}
