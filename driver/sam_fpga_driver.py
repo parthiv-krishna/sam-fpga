@@ -91,15 +91,17 @@ class SamFpgaDriver:
         logging.debug(f"Go")
         self.send_uint32(inst)
 
-def read_file(file_path):
-    with open(file_path, 'r') as f:
+def read_file(file_path, basedir):
+    with open(f"{basedir}/{file_path}", 'r') as f:
         return f.readlines()
 
-def main(serial_port: pathlib.Path, serial_baud: int):
+def main(config: pathlib.Path, serial_port: pathlib.Path, serial_baud: int):
     sam = SamFpgaDriver(serial_port, serial_baud)
 
-    with open('input_data_tracker.json', 'r') as json_file:
+    with open(config, 'r') as json_file:
         data = json.load(json_file)
+
+    config_basedir = config.parent
 
     # Iterate over each key-value pair in the JSON data
     for key, value in data.items():
@@ -113,8 +115,8 @@ def main(serial_port: pathlib.Path, serial_baud: int):
         logging.info(f"Writing tensor {key}")
         logging.info(f"Writing crd, seg for {key}")
         for i in banks_crd_seg:
-            seg_data = read_file(input_seg[i%5]) #right now mod 5 bcz reading in two tensors, all with modes 0,1,2 - might need to change this later
-            crd_data = read_file(input_crd[i%5])
+            seg_data = read_file(input_seg[i%5], config_basedir) #right now mod 5 bcz reading in two tensors, all with modes 0,1,2 - might need to change this later
+            crd_data = read_file(input_crd[i%5], config_basedir)
 
             bank = i #takes i val (bank number) and converts to 4 bit binary representation
             addr_needed = len(seg_data)+len(crd_data)
@@ -127,7 +129,7 @@ def main(serial_port: pathlib.Path, serial_baud: int):
             
         #storing value and shape
         logging.info(f"Writing value for {key}")
-        value_data = read_file(value_file)
+        value_data = read_file(value_file, config_basedir)
         value_data_final = [item.strip() for item in value_data] 
         value_bank = data[key]["bank_value"]
         val_spec_addr = 0
@@ -137,7 +139,7 @@ def main(serial_port: pathlib.Path, serial_baud: int):
             val_spec_addr = val_spec_addr+1
 
         logging.info(f"Writing shape for {key}")
-        shape_data = read_file(shape_file)
+        shape_data = read_file(shape_file, config_basedir)
         shape_data_final = [item.strip() for item in shape_data] 
         shape_bank = data[key]["bank_shape"]
         shape_spec_addr = 0
@@ -158,9 +160,12 @@ def main(serial_port: pathlib.Path, serial_baud: int):
 
 if __name__ == "__main__":
      parser = argparse.ArgumentParser()
+     parser.add_argument("config", help="config json file describing tensors")
      parser.add_argument("-s", "--serial_port", help="serial port to connect to", default=None)
      parser.add_argument("-b", "--serial_baud", help="baud rate for serial port", default=115200)
 
      args = parser.parse_args()
 
-     main(args.serial_port, args.serial_baud)
+     config = pathlib.Path(args.config)
+
+     main(config, args.serial_port, args.serial_baud)
